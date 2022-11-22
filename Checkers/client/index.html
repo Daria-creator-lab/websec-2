@@ -5,104 +5,96 @@
 	<link rel="stylesheet" href="style.css">
 </head>
 <body>
-	<div class="table">
-		<div class="square gray_square"> </div>
-		<div class="square orange_square"> </div>
-		<div class="square gray_square"> </div>
-		<div class="square orange_square"> </div>
-		<div class="square gray_square"> </div>
-		<div class="square orange_square"> </div>
-		<div class="square gray_square"> </div>
-		<div class="square orange_square"> </div>
-		
-		<div class="square orange_square"> </div>
-		<div class="square gray_square"> </div>
-		<div class="square orange_square"> </div>
-		<div class="square gray_square"> </div>
-		<div class="square orange_square"> </div>
-		<div class="square gray_square"> </div>
-		<div class="square orange_square"> </div>
-		<div class="square gray_square"> </div>
-
-		<div class="square gray_square"> </div>
-		<div class="square orange_square"> </div>
-		<div class="square gray_square"> </div>
-		<div class="square orange_square"> </div>
-		<div class="square gray_square"> </div>
-		<div class="square orange_square"> </div>
-		<div class="square gray_square"> </div>
-		<div class="square orange_square"> </div>
-		
-		<div class="square orange_square"> </div>
-		<div class="square gray_square"> </div>
-		<div class="square orange_square"> </div>
-		<div class="square gray_square"> </div>
-		<div class="square orange_square"> </div>
-		<div class="square gray_square"> </div>
-		<div class="square orange_square"> </div>
-		<div class="square gray_square"> </div>
-
-		<div class="square gray_square"> </div>
-		<div class="square orange_square"> </div>
-		<div class="square gray_square"> </div>
-		<div class="square orange_square"> </div>
-		<div class="square gray_square"> </div>
-		<div class="square orange_square"> </div>
-		<div class="square gray_square"> </div>
-		<div class="square orange_square"> </div>
-		
-		<div class="square orange_square"> </div>
-		<div class="square gray_square"> </div>
-		<div class="square orange_square"> </div>
-		<div class="square gray_square"> </div>
-		<div class="square orange_square"> </div>
-		<div class="square gray_square"> </div>
-		<div class="square orange_square"> </div>
-		<div class="square gray_square"> </div>
-
-		<div class="square gray_square"> </div>
-		<div class="square orange_square"> </div>
-		<div class="square gray_square"> </div>
-		<div class="square orange_square"> </div>
-		<div class="square gray_square"> </div>
-		<div class="square orange_square"> </div>
-		<div class="square gray_square"> </div>
-		<div class="square orange_square"> </div>
-		
-		<div class="square orange_square"> </div>
-		<div class="square gray_square"> </div>
-		<div class="square orange_square"> </div>
-		<div class="square gray_square"> </div>
-		<div class="square orange_square"> </div>
-		<div class="square gray_square"> </div>
-		<div class="square orange_square"> </div>
-		<div class="square gray_square"> </div>
-
-		<div class="checker white_checker"> </div>
-		<div class="checker white_checker"> </div>
-		<div class="checker white_checker"> </div>
-		<div class="checker white_checker"> </div>
-		<div class="checker white_checker"> </div>
-		<div class="checker white_checker"> </div>
-		<div class="checker white_checker"> </div>
-		<div class="checker white_checker"> </div>	
-		<div class="checker white_checker"> </div>
-		<div class="checker white_checker"> </div>
-		<div class="checker white_checker"> </div>
-		<div class="checker white_checker"> </div>	
-
-		<div class="checker black_checker"> </div>
-		<div class="checker black_checker"> </div>
-		<div class="checker black_checker"> </div>
-		<div class="checker black_checker"> </div>
-		<div class="checker black_checker"> </div>
-		<div class="checker black_checker"> </div>
-		<div class="checker black_checker"> </div>
-		<div class="checker black_checker"> </div>
-		<div class="checker black_checker"> </div>
-		<div class="checker black_checker"> </div>
-		<div class="checker black_checker"> </div>
-		<div class="checker black_checker"> </div>
+	<div class="content" id="main">
+		<div class="players-container">
+			<div class="white-player">
+				<div class="player-name" style="color: white;">Player 1</div>
+				<div class="white-player-wrapper">
+					<div class="checker-score black_checker"></div>
+					<div class="score" id="white-score">0</div>
+				</div>
+			</div>
+			<div class="black-player">
+				<div class="player-name" style="color: black;">Player 2</div>
+				<div class="black-player-wrapper">
+					<div class="checker-score white_checker"></div>
+					<div class="score" id="black-score">0</div>
+				</div>
+			</div>
+		</div>
+		<div class="table" id="table">
+			<div class="square gray_square"> </div>
+			<div class="square orange_square"> </div>
+			<div class="square gray_square"> </div>
+			<div class="square orange_square"> </div>
+			<div class="square gray_square"> </div>
+			<div class="square orange_square"> </div>
+			<div class="square gray_square"> </div>
+			<div class="square orange_square"> </div>
+			
+			<div class="square orange_square"> </div>
+			<div class="square gray_square"> </div>
+			<div class="square orange_square"> </div>
+			<div class="square gray_square"> </div>
+			<div class="square orange_square"> </div>
+			<div class="square gray_square"> </div>
+			<div class="square orange_square"> </div>
+			<div class="square gray_square"> </div>
+	
+			<div class="square gray_square"> </div>
+			<div class="square orange_square"> </div>
+			<div class="square gray_square"> </div>
+			<div class="square orange_square"> </div>
+			<div class="square gray_square"> </div>
+			<div class="square orange_square"> </div>
+			<div class="square gray_square"> </div>
+			<div class="square orange_square"> </div>
+			
+			<div class="square orange_square"> </div>
+			<div class="square gray_square"> </div>
+			<div class="square orange_square"> </div>
+			<div class="square gray_square"> </div>
+			<div class="square orange_square"> </div>
+			<div class="square gray_square"> </div>
+			<div class="square orange_square"> </div>
+			<div class="square gray_square"> </div>
+	
+			<div class="square gray_square"> </div>
+			<div class="square orange_square"> </div>
+			<div class="square gray_square"> </div>
+			<div class="square orange_square"> </div>
+			<div class="square gray_square"> </div>
+			<div class="square orange_square"> </div>
+			<div class="square gray_square"> </div>
+			<div class="square orange_square"> </div>
+			
+			<div class="square orange_square"> </div>
+			<div class="square gray_square"> </div>
+			<div class="square orange_square"> </div>
+			<div class="square gray_square"> </div>
+			<div class="square orange_square"> </div>
+			<div class="square gray_square"> </div>
+			<div class="square orange_square"> </div>
+			<div class="square gray_square"> </div>
+	
+			<div class="square gray_square"> </div>
+			<div class="square orange_square"> </div>
+			<div class="square gray_square"> </div>
+			<div class="square orange_square"> </div>
+			<div class="square gray_square"> </div>
+			<div class="square orange_square"> </div>
+			<div class="square gray_square"> </div>
+			<div class="square orange_square"> </div>
+			
+			<div class="square orange_square"> </div>
+			<div class="square gray_square"> </div>
+			<div class="square orange_square"> </div>
+			<div class="square gray_square"> </div>
+			<div class="square orange_square"> </div>
+			<div class="square gray_square"> </div>
+			<div class="square orange_square"> </div>
+			<div class="square gray_square"> </div>
+		</div>
 	</div>
 
 	<script src="script.js"></script>
