@@ -77,17 +77,21 @@ body, html{
     font-size: 1.75em;
 }
 
-.score{
+.score, .kiled{
     margin: auto 20px;
     font-weight: bold;
     font-size: 2em;
+}
+
+.kiled{
+    font-size: 1.25em;
 }
 
 .content{
     position: relative;
 }
 
-.modal{
+.modal, .login{
     position: absolute;
     top: 50%;
     left: 50%;
@@ -96,8 +100,12 @@ body, html{
     border-radius: 10px;
     background-color: blanchedalmond;
     width: 300px;
-    height: 30px;
+    height: auto;
     max-width: 30%;
+}
+
+.login{
+    height: auto;
 }
 
 .modal-wrapper{
@@ -109,4 +117,43 @@ body, html{
 
 .modal-body{
     font-size: 1.2rem;
+}
+
+input{
+    margin: 5px auto;
+    display: block;
+    width: 50%;
+    padding: 4px;
+    border: 1px solid gray;
+}
+
+button{
+    margin: 10px auto 10px;
+    display: block;
+}
+
+label{
+    margin-top: 5px;
+    display: block;
+    text-align: center;
+    font-size: 1.15em;
+}
+
+.queue-container{
+    width: 100px;
+    height: 60px;
+    border: 1px solid black;
+    background: #d9dbda;
+    border-radius: 20px;
+}
+
+.queue-container-text, .queue-container-body{
+    margin: 5px auto 0;
+    text-align: center;
+    font-size: 1em;
+}
+
+.queue-container-body{
+    font-size: 1.5em;
+    font-weight: bold;
 }

@@ -1,37 +1,113 @@
-const requestURL = 'http://localhost:5000';
-let board = [];
+let ws = new WebSocket("ws://localhost:5000");
 
-function sendRequest(method, url, body = null){
-	if(body !== null){
-		return fetch(url, {                
-			method  : method,
-			headers : {
-			   'Content-Type': 'application/JSON'
-			},
-			body: JSON.stringify(body)
-	   }).then(response => {
-			if (response.ok){
-				if(response.url === requestURL + "/attack") 
-					return response.json();
-				else return "POST success";
-			}
-		})
+ws.addEventListener('message', (event) => {
+	let data = JSON.parse(event.data);
+    console.log('Message from server ', data);
+	if(data.includesUser) updateLoginWindow();
+	if(data.waitingPlayer){
+		hideLoginWindow();
+		createWaitingPlayerWindow("Ожидание игрока...");
 	}
-    return fetch(url).then(response => {
-        return response.json();
-    })
+	if(data.gameFinished) gameFinished(data.winner);
+	if(data.enemyDisconnected) createWaitingPlayerWindow("Игрок отключился. Ожидайте...");
+	if(data.enemyDisconnected === false){
+		login = data.login;
+		deleteWindow("waiting");
+	} 
+	switch(data.function){
+		case 'initBoard':
+			loginIdentification(data.game, data.login);
+			let string = "login";
+			if(data.newGame){ 
+				makeNewGame();
+				string = 'modal';
+			}
+			deleteWindow(string);
+			deleteWaitingWindow();
+			initBoard(data.game);
+			queueControl(data.game.queue);
+			break;
+
+		case 'makeMove':
+			updatePosition(data.checker);
+			queueControl(data.queue);
+			break;
+			
+		case 'attack':
+			updatePosition(data.checker, true);
+			queueControl(data.queue);
+			break;
+	}
+});
+
+function updateLoginWindow(){
+	let label = document.getElementById("userExists");
+	label.innerText = "Имя пользователя занято";
 }
+
+function hideLoginWindow(){
+	let login = document.getElementById("login");
+	login.style.display = "none";
+}
+
+function deleteWaitingWindow(){
+	let waitingWindow = document.getElementById("waiting");
+	if(waitingWindow) waitingWindow.remove();
+	else return;
+}
+
+function createWaitingPlayerWindow(string){
+	let waitingWindow = document.createElement("div");
+	waitingWindow.setAttribute("id", "waiting");
+	waitingWindow.classList.add("login");
+	waitingWindow.style.height = "50px";
+
+	let label = document.createElement("label");
+	label.innerText = string;
+
+	waitingWindow.appendChild(label);
+
+	document.body.appendChild(waitingWindow);
+}
+
+function makeNewGame(){
+	deleteCheckers();
+	selectedChecker = undefined;
+	selectedSquare = undefined;
+	board = [];
+	kings = []; 
+	player = undefined;
+	game = undefined;
+	whiteCheckersCount = 12;
+	blackCheckersCount = 12;
+	isGameFinished = false;
+	let score = document.getElementById("white-score");
+	score.innerText = 0;
+	score = document.getElementById("black-score");
+	score.innerText = 0;
+}
+
+let board = [];
 
 let selectedSquare = undefined;
 let selectedChecker = undefined;
 
-function queueControl(){
-	if(queue === "white") queue = "black";
-	else queue = "white";
+function queueControl(queue){
+	game.queue = queue;
+	let field = document.getElementById("queue-body");
+	field.innerText = queue;
 }
 
-function makeMove(checker, attack = false){
-	queueControl();
+function changeQueue(){
+	if(game.queue === "white") game.queue = "black";
+	else game.queue = "white";
+}
+
+function makeMove(checker, attack = false, updatePosition = false){
+	if(!attack){
+		changeQueue();
+		queueControl(game.queue);
+	}
 	let x = selectedChecker.x;
 	let y = selectedChecker.y;
 	delete board[y][x].checker;
@@ -40,8 +116,7 @@ function makeMove(checker, attack = false){
 		y: checker.y,
 		currentX: selectedSquare.x,
 		currentY: selectedSquare.y,
-		king: false,
-		queue: queue
+		king: false
 	}
 	checker.x = selectedSquare.x;
 	checker.y = selectedSquare.y;
@@ -61,11 +136,7 @@ function makeMove(checker, attack = false){
 
 	if(checker.king) body.king = true;
 	if(!attack){
-		const router = '/makeMove';
-		let url = requestURL + router;
-		sendRequest('POST', url, body)
-			.then(response => console.log(response))
-			.catch(err => console.log(err))
+		if(!updatePosition) ws.send(JSON.stringify({function: "makeMove", body}));
 	}
 	else {
 		if(checker.king) return true;
@@ -92,21 +163,33 @@ function allowMove(){
 	return false;
 }
 
-function isAttack(){
+function isAttack(withoutSelectedSquare = false){
 	if(selectedChecker.color === 'white' || selectedChecker.king){
 		let counter = 0;
 		while(counter !== 2){
 			let x = selectedChecker.x + 2;
 			if (counter === 1) x = selectedChecker.x - 2;
 			let y = selectedChecker.y + 2;
+			if(withoutSelectedSquare){
+				if(x < 0 || y < 0 || x > 8 || y > 8){
+					x = selectedChecker.x - 2;
+					y = selectedChecker.y + 2;
+					++counter;
+					continue;
+				} 
+				selectedSquare = board[y][x];
+			}
+			if(selectedSquare === undefined) break;
 			if(selectedSquare.x === x && selectedSquare.y === y && !selectedSquare.ocupied){
 				let xC = selectedChecker.x + 1;
 				if (counter === 1) xC = selectedChecker.x - 1;
 				let yC = selectedChecker.y + 1;
+				if(board[yC][xC].checker === undefined) break;
 				if(board[yC][xC].ocupied && board[yC][xC].checker.color === "black" || selectedChecker.king){
 					if(selectedChecker.king) {
 						if(selectedChecker.color === board[yC][xC].checker.color) return {flag: false};
 					}
+					if(withoutSelectedSquare) return {waitingAttack: true}
 					return {x: x, y: y, xAttacked: xC, yAttacked: yC, flag: true};
 				}
 			}
@@ -121,14 +204,26 @@ function isAttack(){
 			let x = selectedChecker.x - 2;
 			if (counter === 1) x = selectedChecker.x + 2;
 			let y = selectedChecker.y - 2;
+			if(withoutSelectedSquare){
+				if(x < 0 || y < 0 || x > 8 || y > 8){
+					x = selectedChecker.x - 2;
+					y = selectedChecker.y + 2;
+					++counter;
+					continue;
+				}
+				selectedSquare = board[y][x];
+			}
+			if(selectedSquare === undefined) break;
 			if(selectedSquare.x === x && selectedSquare.y === y && !selectedSquare.ocupied){
 				let xC = selectedChecker.x - 1;
 				if (counter === 1) xC = selectedChecker.x + 1;
 				let yC = selectedChecker.y - 1;
+				if(board[yC][xC].checker === undefined) break;
 				if(board[yC][xC].ocupied && board[yC][xC].checker.color === "white" || selectedChecker.king){
 					if(selectedChecker.king) {
 						if(selectedChecker.color === board[yC][xC].checker.color) return {flag: false};
 					}
+					if(withoutSelectedSquare) return {waitingAttack: true}
 					return {x: x, y: y, xAttacked: xC, yAttacked: yC, flag: true};
 				}
 			}
@@ -153,7 +248,7 @@ function incKilledCheckers(color){
 	}
 }
 
-function attack(coordinates){
+function attack(coordinates, updatePosition = false){
 	let fromX = selectedChecker.x;
 	let fromY = selectedChecker.y;
 	let xA = coordinates.xAttacked;
@@ -171,20 +266,17 @@ function attack(coordinates){
 		xAttacked: coordinates.xAttacked,
 		yAttacked: coordinates.yAttacked,
 		king: king,
-		queue: queue,
 		score: {
 			whiteCheckersCount,
 			blackCheckersCount
 		}
 	}
-	const router = '/attack';
-	let url = requestURL + router;
-	sendRequest('POST', url, body)
-		.then(response => {
-			if(response.gameFinished) gameFinished(response.winner);
-			else console.log(response);
-		})
-		.catch(err => console.log(err))
+	let waitingAttack = isAttack(true).waitingAttack;
+	if(waitingAttack === undefined){
+		changeQueue();
+		queueControl(game.queue);
+	}
+	if(!updatePosition) ws.send(JSON.stringify({function: "attack", body, waitingAttack}));
 }
 
 let isGameFinished = false;
@@ -210,8 +302,7 @@ function createModalWindow(winner){
 
 	let modalBody = document.createElement("div");
 	modalBody.classList.add("modal-body");
-	if(winner === "black") modalBody.innerText = "Player 1 победил";
-	else modalBody.innerText = "Player 2 победил";
+	modalBody.innerText = `Победил: ${winner}`;
 
 	modalWrapper.appendChild(modalBody);
 	let button = document.createElement("button");
@@ -226,17 +317,7 @@ function createModalWindow(winner){
 }
 
 function newGame(){
-	board = [];
-	selectedSquare = undefined;
-	selectedChecker = undefined;
-	isGameFinished = false;
-	kings = []; 
-	queue = undefined;
-	const router = '/newGame';
-	let url = requestURL + router;
-	sendRequest('GET', url) 
-		.then(data => initBoard(data, true))
-		.catch(err => console.log(err))
+	ws.send(JSON.stringify({function: "newGame"}));
 }
 
 function deleteCheckers(){
@@ -258,13 +339,8 @@ function square(square, colorId, x, y){
 			selectedSquare = this;
 			let result = isAttack();
 			if (result.flag){
-				if(selectedChecker.attackCounter === undefined)
-					selectedChecker.attackCounter = 0;
 				delete result.flag;
 				attack(result);
-				++selectedChecker.attackCounter;
-				if(selectedChecker.attackCounter > 1) 
-					queueControl();
 			}
 			else{
 				if(selectedChecker.attackCounter >= 1){
@@ -294,7 +370,7 @@ function checker(checker, color, x, y) {
 	this.y = y;
 	this.id.onclick = () => {
 		if(isGameFinished) return;
-		if(this.color === queue) selectedChecker = this;
+		if(player.color === game.queue && this.color === game.queue) selectedChecker = this;
 	}
 }
 
@@ -308,7 +384,9 @@ checker.prototype.setCoord = function(){
 }
 
 let kings = []; 
-let queue = undefined;
+let player = undefined;
+let game = undefined;
+let login = undefined;
 let whiteCheckersCount = 12;
 let blackCheckersCount = 12;
 
@@ -321,18 +399,50 @@ function initScore(scoreObj){
 	score.innerText = 12 - scoreObj.whiteCheckersCount;
 }
 
-function initBoard(data, newGame = false){
-	if(newGame){
-		deleteCheckers();
-		deleteModalWindow();
+function playerIdentification(players){
+	for(let j = 0; j < players.length; ++j){
+		if(players[j].login === login) return players[j];
 	}
+}
+
+function loginIdentification(game, log){
+	login = log;
+	let players = game.players;
+	players.forEach(player => {
+		if(player.color === 'white'){
+			let div = document.getElementById("white-login-name");
+			div.innerText = player.login;
+		}
+		else{
+			let div = document.getElementById("black-login-name");
+			div.innerText = player.login;
+		}
+	});
+}
+
+function updatePosition(checker, isAttack = false){
+	if(isAttack){
+		checker.x = checker.fromX;
+		checker.y = checker.fromY;
+		checker.currentX = checker.toX;
+		checker.currentY = checker.toY;
+	}
+	let square = board[checker.y][checker.x];
+	selectedChecker = square.checker;
+	selectedSquare = board[checker.currentY][checker.currentX];
+	if(isAttack) attack({xAttacked: checker.xAttacked, yAttacked: checker.yAttacked}, true);
+	else makeMove(selectedChecker, false, true);
+}
+
+function initBoard(data){
 	if(data.gameFinished) gameFinished(data.winner);
 	if(data.score) initScore(data.score);
 	let squareClass = document.getElementsByClassName("square");
 	let table = document.getElementById("table");
 	let squareIndex = 0;
 	kings = data.kings;
-	queue = data.queue;
+	player = playerIdentification(data.players);
+	game = data;
 
 	for (let i = 0; i < 8; ++i){
 		board[i] = new Array(8);
@@ -374,12 +484,40 @@ function isKing(x, y){
 	return !flag;
 }
 
-function main(){
-	const router = '/initBoard';
-	let url = requestURL + router;
-	sendRequest('GET', url) 
-		.then(data => initBoard(data))
-		.catch(err => console.log(err))
+function createLoginWindow(){
+	let loginWindow = document.createElement("div");
+	loginWindow.setAttribute("id", "login");
+	loginWindow.classList.add("login");
+
+	let label = document.createElement("label");
+	label.innerText = "Enter Username";
+
+	let input = document.createElement("input");
+	input.setAttribute("id", "input_login");
+
+	let labelInf = document.createElement("label");
+	labelInf.setAttribute("id", "userExists");
+
+	let button = document.createElement("button");
+	button.innerText = "Log In";
+	button.addEventListener("click", () => {
+		includesUser(input.value);
+	});
+
+	loginWindow.appendChild(label);
+	loginWindow.appendChild(input);
+	loginWindow.appendChild(labelInf);
+	loginWindow.appendChild(button);
+	document.body.appendChild(loginWindow);
 }
 
-main();
+function deleteWindow(id){
+	let window = document.getElementById(id);
+	window.remove();
+}
+
+function includesUser(login){
+    ws.send(JSON.stringify({function: "includesUser", login}));
+}
+
+createLoginWindow()
